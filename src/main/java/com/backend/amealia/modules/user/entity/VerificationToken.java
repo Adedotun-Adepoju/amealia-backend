@@ -1,5 +1,6 @@
 package com.backend.amealia.modules.user.entity;
 
+import com.backend.amealia.audit.AuditableBase;
 import com.backend.amealia.modules.user.enums.OnboardingStep;
 import com.backend.amealia.modules.user.enums.UserStatus;
 import com.backend.amealia.modules.user.enums.VerificationType;
@@ -17,7 +18,7 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class VerificationToken {
+public class VerificationToken extends AuditableBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,7 +33,4 @@ public class VerificationToken {
     private String token;
     private Instant expiresAt;
     private boolean used;
-
-    private Instant createdAt;
-    private Instant updatedAt;
 }

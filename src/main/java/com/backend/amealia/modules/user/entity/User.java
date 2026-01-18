@@ -1,5 +1,6 @@
 package com.backend.amealia.modules.user.entity;
 
+import com.backend.amealia.audit.AuditableBase;
 import com.backend.amealia.modules.user.enums.OnboardingStep;
 import com.backend.amealia.modules.user.enums.UserStatus;
 import jakarta.persistence.*;
@@ -17,7 +18,7 @@ import java.util.Collection;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class User extends AuditableBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,7 +29,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String phoneNumber;
 
     private boolean emailVerified;
@@ -39,9 +40,6 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
-
-    private Instant createdAt;
-    private Instant updatedAt;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     private Collection<VerificationToken> verificationTokens;
