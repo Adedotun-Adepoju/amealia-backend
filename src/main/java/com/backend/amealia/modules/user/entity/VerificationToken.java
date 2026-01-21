@@ -37,4 +37,6 @@ public class VerificationToken extends AuditableBase {
     private String token;
     private Instant expiresAt;
     private boolean active;
+
+    private long attempt = 0L;
 }
