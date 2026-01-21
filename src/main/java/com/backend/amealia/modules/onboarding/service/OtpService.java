@@ -3,6 +3,7 @@ package com.backend.amealia.modules.onboarding.service;
 import com.backend.amealia.exception.BusinessException;
 import com.backend.amealia.modules.user.entity.User;
 import com.backend.amealia.modules.user.entity.VerificationToken;
+import com.backend.amealia.modules.user.enums.VerificationStatus;
 import com.backend.amealia.modules.user.enums.VerificationType;
 import com.backend.amealia.modules.user.repository.VerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,14 +21,14 @@ public class OtpService {
 
     @Transactional
     public String createNewToken(User user, VerificationType type) {
-        verificationTokenRepository.deactivateTokens(user.getId());
+        verificationTokenRepository.deactivateTokens(user.getId(), type);
 
         VerificationToken emailVerificationToken = new VerificationToken();
 
         emailVerificationToken.setUser(user);
         emailVerificationToken.setToken(generateOtp());
         emailVerificationToken.setExpiresAt(Instant.now().plus(5, ChronoUnit.MINUTES));
-        emailVerificationToken.setUsed(false);
+        emailVerificationToken.setStatus(VerificationStatus.OPEN);
         emailVerificationToken.setActive(true);
         emailVerificationToken.setType(type);
 

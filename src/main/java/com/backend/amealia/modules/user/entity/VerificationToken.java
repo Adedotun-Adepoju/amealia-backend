@@ -3,6 +3,7 @@ package com.backend.amealia.modules.user.entity;
 import com.backend.amealia.audit.AuditableBase;
 import com.backend.amealia.modules.user.enums.OnboardingStep;
 import com.backend.amealia.modules.user.enums.UserStatus;
+import com.backend.amealia.modules.user.enums.VerificationStatus;
 import com.backend.amealia.modules.user.enums.VerificationType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,10 +29,12 @@ public class VerificationToken extends AuditableBase {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    private VerificationType type; //EMAIL, PHONE
+    private VerificationType type;
+
+    @Enumerated(EnumType.STRING)
+    private VerificationStatus status;
 
     private String token;
     private Instant expiresAt;
-    private boolean used;
     private boolean active;
 }

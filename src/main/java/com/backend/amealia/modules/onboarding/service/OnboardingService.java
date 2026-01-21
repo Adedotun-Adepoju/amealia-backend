@@ -52,7 +52,7 @@ public class OnboardingService {
 
         userRepository.save(user);
 
-        String token = otpService.createNewToken(user, VerificationType.EMAIL);
+        String token = otpService.createNewToken(user, VerificationType.EMAIL_VERIFICATION);
         // Send email verification async.
         emailService.sendVerificationEmail(signupRequest.email(),token, "Ade");
 
