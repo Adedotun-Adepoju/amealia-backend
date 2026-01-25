@@ -21,25 +21,25 @@ public class OnboardingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/resend-email-verification")
+    @PostMapping("/email/resend")
     public ResponseEntity<?> resendEmailVerificationCode(@Valid @RequestBody OnboardingRequest onboardingRequest) {
         ApiResponse<Void> response = onboardingService.resendEmailVerificationCode(onboardingRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PostMapping("/verify-email")
+    @PostMapping("/email/verify")
     public ResponseEntity<?> verifyEmail(@Valid @RequestBody VerifyEmailRequest verifyEmailRequest) {
         ApiResponse<Void> response = onboardingService.verifyEmail(verifyEmailRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PostMapping("/send-phone-verification")
+    @PostMapping("/phone/send")
     public ResponseEntity<?> sendPhoneVerificationCode(@Valid @RequestBody InitiateVerifyPhoneRequest verifyPhoneRequest) {
         ApiResponse<Void> response = onboardingService.sendPhoneVerificationCode(verifyPhoneRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PostMapping("/verify-phone")
+    @PostMapping("/phone/verify")
     public ResponseEntity<?> verifyPhone(@Valid @RequestBody VerifyPhoneRequest verifyPhoneRequest) {
         ApiResponse<Void> response = onboardingService.verifyPhone(verifyPhoneRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
