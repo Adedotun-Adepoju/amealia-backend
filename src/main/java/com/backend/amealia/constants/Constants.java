@@ -9,6 +9,10 @@ public class Constants {
     public static final String INVALID_EMAIL_PHONE = "The email or Phone number supplied does not exist";
     public static final String USER_CREATED = "User Account created successfully";
     public static final String VERIFICATION_SENT = "New Verification code has been sent";
+    public static final String EMAIL_VERIFICATION_SENT = "Verification code sent to mail";
     public static final String EMAIL_VERIFIED_SUCCESS = "Email verified successfully";
     public static final String PHONE_VERIFIED_SUCCESS = "Phone verified successfully";
+
+    public static final String INVALID_CREDENTIALS = "Invalid credentials";
+    public static final String INVALID_TOKEN = "Invalid Token";
 }

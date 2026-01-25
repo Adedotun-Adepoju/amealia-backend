@@ -6,6 +6,7 @@ import com.backend.amealia.modules.user.enums.OnboardingStep;
 import com.backend.amealia.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.RandomStringGenerator;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -34,5 +35,13 @@ public class UserService {
             log.info("Expected step is {}. The User's step is {}", expected.name(), user.getOnboardingStep().name());
             throw new BusinessException("Invalid onboarding step");
         }
+    }
+
+    public String generateUserCode() {
+        RandomStringGenerator generator = new RandomStringGenerator.Builder()
+                .withinRange('0', '9')   // only digits
+                .build();
+        String numericPart = generator.generate(7);
+        return "A-" + numericPart;
     }
 }

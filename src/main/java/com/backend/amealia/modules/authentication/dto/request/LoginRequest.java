@@ -1,9 +1,7 @@
-package com.backend.amealia.modules.authentication.dto;
+package com.backend.amealia.modules.authentication.dto.request;
 
-import com.backend.amealia.constants.PasswordPolicy;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 
 public record LoginRequest(
         @Email

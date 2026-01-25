@@ -26,6 +26,9 @@ public class User extends AuditableBase {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false, unique = true)
+    private String userCode;
+
     @Column(nullable = false)
     private String password;
 
@@ -43,4 +46,7 @@ public class User extends AuditableBase {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     private Collection<VerificationToken> verificationTokens;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    private Collection<RefreshToken> refreshTokens;
 }

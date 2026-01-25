@@ -42,6 +42,7 @@ public class OnboardingService {
         }
 
         User user = new User();
+        user.setUserCode(userService.generateUserCode());
         user.setEmail(signupRequest.email());
         user.setEmailVerified(false);
         user.setPhoneVerified(false);

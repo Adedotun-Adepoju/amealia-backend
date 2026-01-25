@@ -45,4 +45,32 @@ public class EmailService {
             log.info("An exception occurred while attempting to send verification email {}", e.getMessage(), e);
         }
     }
+
+    @Async("emailExecutor")
+    public void send2faEmail(String to, String token, String name) {
+        try {
+            log.info("Sending verification mail to {}", to);
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            Context context = new Context();
+            context.setVariable("verificationCode", token);
+            context.setVariable("name", name);
+            context.setVariable("expiryMinutes", 5);
+
+            String html = templateEngine.process(
+                    "email/two-factor-email",
+                    context
+            );
+
+            helper.setFrom("amealia@amealia.com");
+            helper.setTo(to);
+            helper.setSubject("Two Factor Authentication Code");
+            helper.setText(html, true);
+            javaMailSender.send(message);
+            log.info("Mail successfully sent to {}", to);
+        } catch (Exception e) {
+            log.info("An exception occurred while attempting to send verification email {}", e.getMessage(), e);
+        }
+    }
 }

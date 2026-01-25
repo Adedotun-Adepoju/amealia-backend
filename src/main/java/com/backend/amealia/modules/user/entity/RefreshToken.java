@@ -1,8 +1,6 @@
 package com.backend.amealia.modules.user.entity;
 
 import com.backend.amealia.audit.AuditableBase;
-import com.backend.amealia.modules.user.enums.OnboardingStep;
-import com.backend.amealia.modules.user.enums.UserStatus;
 import com.backend.amealia.modules.user.enums.VerificationStatus;
 import com.backend.amealia.modules.user.enums.VerificationType;
 import jakarta.persistence.*;
@@ -14,12 +12,12 @@ import lombok.Setter;
 import java.time.Instant;
 
 @Entity
-@Table(name = "verification_tokens")
+@Table(name = "refresh_tokens")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class VerificationToken extends AuditableBase {
+public class RefreshToken extends AuditableBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,15 +26,13 @@ public class VerificationToken extends AuditableBase {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Enumerated(EnumType.STRING)
-    private VerificationType type;
+    @Column(unique = true, nullable = false)
+    private String hashedToken;
 
-    @Enumerated(EnumType.STRING)
-    private VerificationStatus status;
+    @Column(unique = true, nullable = false)
+    private String jti;
 
-    private String token;
+    private boolean revoked;
+
     private Instant expiresAt;
-    private boolean active;
-
-    private long attempt = 0L;
 }
