@@ -24,6 +24,9 @@ public class OtpService {
     @Value("${spring.profiles.active}")
     private String springProfile;
 
+    @Value("${verification.token.expiry.minutes}")
+    private Integer tokenExpiryMinutes;
+
     @Transactional
     public String createNewToken(User user, VerificationType type) {
         verificationTokenRepository.deactivateTokens(user.getId(), type);
@@ -37,7 +40,7 @@ public class OtpService {
         }
 
         emailVerificationToken.setUser(user);
-        emailVerificationToken.setExpiresAt(Instant.now().plus(5, ChronoUnit.MINUTES));
+        emailVerificationToken.setExpiresAt(Instant.now().plus(tokenExpiryMinutes, ChronoUnit.MINUTES));
         emailVerificationToken.setStatus(VerificationStatus.OPEN);
         emailVerificationToken.setActive(true);
         emailVerificationToken.setType(type);
