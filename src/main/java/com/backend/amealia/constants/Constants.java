@@ -15,4 +15,7 @@ public class Constants {
 
     public static final String INVALID_CREDENTIALS = "Invalid credentials";
     public static final String INVALID_TOKEN = "Invalid Token";
+
+    public static final String USER_VERIFICATION_NEEDED = "User needs to complete Email and Phone verifications";
+    public static final String LOGGED_OUT_SUCCESSFULLY = "Logged out successfully";
 }

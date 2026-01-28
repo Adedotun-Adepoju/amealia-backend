@@ -4,7 +4,9 @@ import com.backend.amealia.exception.BusinessException;
 import com.backend.amealia.modules.authentication.dto.request.LoginRequest;
 import com.backend.amealia.modules.authentication.dto.request.Verify2FARequest;
 import com.backend.amealia.modules.authentication.dto.response.AuthResponse;
+import com.backend.amealia.modules.authentication.dto.response.LoginResponse;
 import com.backend.amealia.modules.email.service.EmailService;
+import com.backend.amealia.modules.onboarding.dto.OnboardingRequest;
 import com.backend.amealia.modules.onboarding.service.OtpService;
 import com.backend.amealia.modules.user.dto.RefreshTokenDTO;
 import com.backend.amealia.modules.user.entity.RefreshToken;
@@ -14,17 +16,25 @@ import com.backend.amealia.modules.user.repository.RefreshTokenRepository;
 import com.backend.amealia.modules.user.repository.UserRepository;
 import com.backend.amealia.modules.user.service.UserService;
 import com.backend.amealia.util.ApiResponse;
+import com.backend.amealia.util.HelperUtil;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HexFormat;
 
 import static com.backend.amealia.constants.Constants.*;
+import static com.backend.amealia.modules.user.enums.OnboardingStep.SIGNED_UP;
+import static com.backend.amealia.util.HelperUtil.sha256;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +51,7 @@ public class AuthenticationService {
     @Value("${app.security.jwt.refresh.token.expiry}")
     private long refreshTokenExpiry;
 
-    public ApiResponse<Void> authenticate(LoginRequest loginRequest) {
+    public ApiResponse<LoginResponse> authenticate(LoginRequest loginRequest) {
         User user = userRepository.findByEmail(loginRequest.email())
                 .orElseThrow(() -> new BusinessException(INVALID_CREDENTIALS));
 
@@ -49,13 +59,31 @@ public class AuthenticationService {
             throw new BusinessException(INVALID_CREDENTIALS);
         }
 
-        String code = otpService.createNewToken(user, VerificationType.TWO_FA_VERIFICATION);
+        LoginResponse loginResponse = new LoginResponse(user.getUserCode(), user.isEmailVerified(), user.isPhoneVerified(), user.getUserStatus(), user.getOnboardingStep());
+
+        if (user.isEmailVerified() && user.isPhoneVerified()) {
+            String code = otpService.createNewToken(user, VerificationType.TWO_FA_VERIFICATION);
+            // Send 2fa email verification async.
+            emailService.send2faEmail(loginRequest.email(), code, "Ade");
+
+            return ApiResponse.success(EMAIL_VERIFICATION_SENT, loginResponse);
+        }
+
+
+        return ApiResponse.success(USER_VERIFICATION_NEEDED, loginResponse);
+    }
+
+    public ApiResponse<Void> resend2faVerificationCode(OnboardingRequest onboardingRequest) {
+        User user = userService.findByEmail(onboardingRequest.email());
+
+        String token = otpService.createNewToken(user, VerificationType.TWO_FA_VERIFICATION);
         // Send email verification async.
-        emailService.send2faEmail(loginRequest.email(), code, "Ade");
+        emailService.send2faEmail(onboardingRequest.email(), token, "Ade");
 
         return ApiResponse.success(EMAIL_VERIFICATION_SENT);
     }
 
+    @Transactional
     public ApiResponse<AuthResponse> verify2fa(Verify2FARequest verify2FARequest) {
         User user = userService.findByEmail(verify2FARequest.email());
 
@@ -76,6 +104,11 @@ public class AuthenticationService {
         Claims claims = jwtService.parseToken(token);
 
         String tokenId = claims.getId();
+
+        if (HelperUtil.isBlank(tokenId)) {
+            log.info("Refresh token without JTI used");
+            throw new BusinessException(INVALID_TOKEN);
+        }
         RefreshToken refreshToken = refreshTokenRepository.findByJti(tokenId)
                 .orElseThrow(() -> new BusinessException(INVALID_TOKEN));
 
@@ -87,7 +120,9 @@ public class AuthenticationService {
             throw new BusinessException("Token expired");
         }
 
-        if (!passwordEncoder.matches(token, refreshToken.getHashedToken())) {
+        String hashedToken = sha256(token);
+
+        if (!hashedToken.equals(refreshToken.getHashedToken())) {
             throw new BusinessException(INVALID_TOKEN);
         }
 
@@ -98,8 +133,21 @@ public class AuthenticationService {
         return ApiResponse.success(authResponse);
     }
 
+    public ApiResponse<AuthResponse> logout(String refreshToken) {
+        Claims claims = jwtService.parseToken(refreshToken);
+
+        String tokenId = claims.getId();
+        RefreshToken token = refreshTokenRepository.findByJti(tokenId)
+                .orElseThrow(() -> new BusinessException(INVALID_TOKEN));
+
+        token.setRevoked(true);
+        refreshTokenRepository.save(token);
+
+        return ApiResponse.success(LOGGED_OUT_SUCCESSFULLY);
+    }
+
     private void saveRefreshToken(User user, String token, String tokenId) {
-        String hashedToken = passwordEncoder.encode(token);
+        String hashedToken = sha256(token);
 
         RefreshToken refreshToken = new RefreshToken();
 

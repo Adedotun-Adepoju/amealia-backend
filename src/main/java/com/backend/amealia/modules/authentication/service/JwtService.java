@@ -47,7 +47,7 @@ public class JwtService {
                 .setId(jti)
                 .claim("type", "Refresh")
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiry * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiry * 1000))
                 .signWith(getSigningKey())
                 .compact();
 
