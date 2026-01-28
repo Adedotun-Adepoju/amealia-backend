@@ -1,5 +1,8 @@
 package com.backend.amealia.util;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -21,6 +24,16 @@ public class HelperUtil {
             return HexFormat.of().formatHex(hash);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 not available", e);
+        }
+    }
+
+    public static String getLoggedInUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth != null && !"anonymousUser".equals(auth.getPrincipal())) {
+            return auth.getName();
+        } else {
+            return "";
         }
     }
 }

@@ -1,12 +1,16 @@
 package com.backend.amealia.modules.user.service;
 
 import com.backend.amealia.exception.BusinessException;
+import com.backend.amealia.modules.user.dto.UserDTO;
 import com.backend.amealia.modules.user.entity.User;
 import com.backend.amealia.modules.user.enums.OnboardingStep;
 import com.backend.amealia.modules.user.repository.UserRepository;
+import com.backend.amealia.util.ApiResponse;
+import com.backend.amealia.util.HelperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.RandomStringGenerator;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -19,6 +23,15 @@ import static com.backend.amealia.constants.Constants.INVALID_EMAIL_PHONE;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+
+    public ApiResponse<UserDTO> getUserDetails() {
+        String username = HelperUtil.getLoggedInUsername();
+        User user = findByEmail(username);
+
+        UserDTO userDTO = new UserDTO(user.getEmail(), null, user.getPhoneNumber(), user.getUserStatus(), user.getOnboardingStep(), user.isEmailVerified(), user.isPhoneVerified(), user.getUserCode());
+
+        return ApiResponse.success(userDTO);
+    }
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
