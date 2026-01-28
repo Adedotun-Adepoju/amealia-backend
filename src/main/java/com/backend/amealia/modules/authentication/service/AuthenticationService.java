@@ -1,10 +1,13 @@
 package com.backend.amealia.modules.authentication.service;
 
 import com.backend.amealia.exception.BusinessException;
+import com.backend.amealia.modules.authentication.dto.request.AuthenticationRequest;
 import com.backend.amealia.modules.authentication.dto.request.LoginRequest;
+import com.backend.amealia.modules.authentication.dto.request.PasswordResetRequest;
 import com.backend.amealia.modules.authentication.dto.request.Verify2FARequest;
 import com.backend.amealia.modules.authentication.dto.response.AuthResponse;
 import com.backend.amealia.modules.authentication.dto.response.LoginResponse;
+import com.backend.amealia.modules.authentication.dto.response.PasswordResetResponse;
 import com.backend.amealia.modules.email.service.EmailService;
 import com.backend.amealia.modules.onboarding.dto.OnboardingRequest;
 import com.backend.amealia.modules.onboarding.service.OtpService;
@@ -73,17 +76,16 @@ public class AuthenticationService {
         return ApiResponse.success(USER_VERIFICATION_NEEDED, loginResponse);
     }
 
-    public ApiResponse<Void> resend2faVerificationCode(OnboardingRequest onboardingRequest) {
-        User user = userService.findByEmail(onboardingRequest.email());
+    public ApiResponse<Void> resend2faVerificationCode(AuthenticationRequest authenticationRequest) {
+        User user = userService.findByEmail(authenticationRequest.email());
 
         String token = otpService.createNewToken(user, VerificationType.TWO_FA_VERIFICATION);
         // Send email verification async.
-        emailService.send2faEmail(onboardingRequest.email(), token, "Ade");
+        emailService.send2faEmail(authenticationRequest.email(), token, "Ade");
 
         return ApiResponse.success(EMAIL_VERIFICATION_SENT);
     }
 
-    @Transactional
     public ApiResponse<AuthResponse> verify2fa(Verify2FARequest verify2FARequest) {
         User user = userService.findByEmail(verify2FARequest.email());
 
@@ -98,6 +100,43 @@ public class AuthenticationService {
         AuthResponse authResponse = new AuthResponse(accessToken, refreshTokenDTO.refreshToken());
 
         return ApiResponse.success(authResponse);
+    }
+
+    public ApiResponse<?> initiatePasswordReset(AuthenticationRequest authenticationRequest) {
+        User user = userService.findByEmail(authenticationRequest.email());
+
+        String code = otpService.createNewToken(user, VerificationType.PASSWORD_UPDATE);
+
+        // Send 2fa email verification async.
+        emailService.sendPasswordResetEmail(authenticationRequest.email(), code, "Ade");
+
+        return ApiResponse.success(EMAIL_VERIFICATION_SENT);
+    }
+
+    public ApiResponse<PasswordResetResponse> validatePasswordResetOtp(Verify2FARequest verify2FARequest) {
+        User user = userService.findByEmail(verify2FARequest.email());
+
+        otpService.verifyToken(user, VerificationType.PASSWORD_UPDATE, verify2FARequest.code());
+
+        String passwordRecoveryToken = otpService.createNewToken(user, VerificationType.PASSWORD_RECOVERY);
+        PasswordResetResponse passwordResetResponse = new PasswordResetResponse(passwordRecoveryToken);
+
+        return ApiResponse.success(passwordResetResponse);
+    }
+
+    public ApiResponse<?> effectPasswordReset(PasswordResetRequest passwordResetRequest) {
+        if (!passwordResetRequest.password().equals(passwordResetRequest.confirmPassword())) {
+            throw new BusinessException("Passwords do not match");
+        }
+
+        User user = userService.findByEmail(passwordResetRequest.email());
+
+        otpService.verifyToken(user, VerificationType.PASSWORD_RECOVERY, passwordResetRequest.recoveryToken());
+
+        user.setPassword(passwordEncoder.encode(passwordResetRequest.password()));
+        userRepository.save(user);
+
+        return ApiResponse.success();
     }
 
     public ApiResponse<AuthResponse> refreshAccessToken(String token) {

@@ -1,9 +1,12 @@
 package com.backend.amealia.modules.authentication.controller;
 
+import com.backend.amealia.modules.authentication.dto.request.AuthenticationRequest;
 import com.backend.amealia.modules.authentication.dto.request.LoginRequest;
+import com.backend.amealia.modules.authentication.dto.request.PasswordResetRequest;
 import com.backend.amealia.modules.authentication.dto.request.Verify2FARequest;
 import com.backend.amealia.modules.authentication.dto.response.AuthResponse;
 import com.backend.amealia.modules.authentication.dto.response.LoginResponse;
+import com.backend.amealia.modules.authentication.dto.response.PasswordResetResponse;
 import com.backend.amealia.modules.authentication.service.AuthenticationService;
 import com.backend.amealia.modules.onboarding.dto.OnboardingRequest;
 import com.backend.amealia.util.ApiResponse;
@@ -35,8 +38,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/resend-2fa")
-    public ResponseEntity<?> resend2fa(@Valid @RequestBody OnboardingRequest onboardingRequest) {
-        ApiResponse<Void> response = authenticationService.resend2faVerificationCode(onboardingRequest);
+    public ResponseEntity<?> resend2fa(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
+        ApiResponse<Void> response = authenticationService.resend2faVerificationCode(authenticationRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -49,6 +52,24 @@ public class AuthenticationController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestBody String refreshToken) {
         ApiResponse<AuthResponse> response = authenticationService.logout(refreshToken);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/password/initiate-reset")
+    public ResponseEntity<?> initiatePasswordReset(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
+        ApiResponse<?> response = authenticationService.initiatePasswordReset(authenticationRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/password/validate-code")
+    public ResponseEntity<?> validatePasswordResetOtp(@Valid @RequestBody Verify2FARequest verify2FARequest) {
+        ApiResponse<PasswordResetResponse> response = authenticationService.validatePasswordResetOtp(verify2FARequest);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/password/reset")
+    public ResponseEntity<?> passwordReset(@Valid @RequestBody PasswordResetRequest passwordResetRequest) {
+        ApiResponse<?> response = authenticationService.effectPasswordReset(passwordResetRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
